@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}img{max-width:100%}</style>
+<title>RFM ร้านของขวัญออนไลน์</title>
+<style>
+/* Layout: sticky step rail on the left (the analysis is a real sequence), wide working column on the right; stacks on phones. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --ink:#18202E; --muted:#5A6476; --line:#DDE2EA;
+  --accent:#A3264B; --accent-soft:#F6E3E9;
+  --data:#2F5D8A; --data-2:#9DB6D3; --data-3:#C9D6E6;
+  --good:#1F7A4D; --warn:#A86A12; --bad:#B03A2E;
+  --chip-bg:#EEF1F5;
+  --f-display:"Noto Serif Thai","Thonburi","Leelawadee UI",Georgia,serif;
+  --f-body:"Sukhumvit Set","Noto Sans Thai","Leelawadee UI","Thonburi",Tahoma,system-ui,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10151E; --surface:#171E2A; --ink:#E6EAF1; --muted:#9AA4B5; --line:#2A3342;
+  --accent:#E07A98; --accent-soft:#3A2130;
+  --data:#7FA8D6; --data-2:#43648A; --data-3:#2C3F57;
+  --good:#5CC08E; --warn:#E0A84A; --bad:#E9786C; --chip-bg:#222B39; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10151E; --surface:#171E2A; --ink:#E6EAF1; --muted:#9AA4B5; --line:#2A3342;
+  --accent:#E07A98; --accent-soft:#3A2130;
+  --data:#7FA8D6; --data-2:#43648A; --data-3:#2C3F57;
+  --good:#5CC08E; --warn:#E0A84A; --bad:#E9786C; --chip-bg:#222B39; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:28px 64px}
+h1,h2{font-family:var(--f-display);text-wrap:balance;line-height:1.3;margin:0}
+h1{font-size:clamp(1.5rem,3.2vw,2.1rem)}
+h2{font-size:1.35rem}
+h3{font-size:1rem;margin:0 0 8px;font-weight:600}
+p{margin:0}
+.muted{color:var(--muted)}
+.num,td.n,th.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+a{color:var(--accent)}
+header.top{display:grid;gap:14px;padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:26px}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.members{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--chip-bg);border-radius:999px;padding:2px 10px;font-size:.82rem;color:var(--muted)}
+.layout{display:grid;grid-template-columns:210px minmax(0,1fr);gap:32px;align-items:start}
+nav.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:grid;gap:2px}
+nav.rail a{display:grid;grid-template-columns:26px 1fr;gap:6px;padding:7px 10px;border-radius:8px;color:var(--muted);text-decoration:none;font-size:.9rem}
+nav.rail a b{font-family:var(--f-mono);font-weight:500;color:var(--accent)}
+nav.rail a:hover,nav.rail a:focus-visible{background:var(--surface);color:var(--ink);outline:none}
+main{display:grid;gap:40px;min-width:0}
+section{display:grid;gap:16px;scroll-margin-top:20px;min-width:0}
+.sec-head{display:grid;gap:4px}
+.sec-head .step{font-family:var(--f-mono);font-size:.8rem;color:var(--accent)}
+.obj{display:inline-block;margin-left:6px;font-family:var(--f-body);font-size:.75rem;background:var(--accent-soft);color:var(--accent);padding:1px 8px;border-radius:999px;vertical-align:middle}
+.explain{max-width:68ch;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:2px}
+.kpi span{font-size:.8rem;color:var(--muted)}
+.kpi strong{font-family:var(--f-mono);font-size:1.3rem;font-weight:500}
+.loader{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+.drop{border:1.5px dashed var(--line);border-radius:12px;padding:20px;display:grid;gap:10px;justify-items:start;background:var(--surface);transition:border-color .15s}
+.drop.over{border-color:var(--accent)}
+.btn{font:inherit;font-size:.9rem;border-radius:8px;padding:7px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.small{font-size:.8rem;padding:3px 10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.status{font-size:.88rem;padding:8px 12px;border-radius:8px;background:var(--chip-bg)}
+.status.sample{background:var(--accent-soft);color:var(--accent)}
+.status.real{color:var(--good)}
+.tbl{overflow-x:auto;min-width:0}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.8rem}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.total td{font-weight:600}
+.chart{position:relative;height:280px;font-family:var(--f-body)}
+.chart text.mono{font-family:var(--f-mono)}
+.chart.tall{height:340px}
+.svgbox{width:100%;height:100%}
+.note{font-size:.82rem;color:var(--muted)}
+.seg{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.seg i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.tbl-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+input[type=search],select{font:inherit;font-size:.88rem;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+ol.plain{margin:0;padding-left:1.3em;display:grid;gap:4px}
+.busy{opacity:.55;pointer-events:none}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  nav.rail{position:static;display:flex;flex-wrap:wrap;gap:4px}
+  nav.rail a{grid-template-columns:auto auto;padding:4px 10px;background:var(--surface);border:1px solid var(--line)}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2,.loader{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Proposal กลุ่ม 10 · ข้อมูล Online Retail (UCI)</div>
+    <h1>การวิเคราะห์พฤติกรรมการซื้อและการแบ่งกลุ่มลูกค้าของร้านค้าปลีกออนไลน์ประเภทของขวัญและของตกแต่ง</h1>
+    <p class="explain">เว็บนี้ทำการวิเคราะห์ตามขั้นตอนใน Proposal ทั้งหมดในเบราว์เซอร์ ตั้งแต่ทำความสะอาดข้อมูล สรุปยอดขาย ไปจนถึงแบ่งกลุ่มลูกค้าด้วย RFM อัปโหลดไฟล์ข้อมูลจริงในขั้นที่ 1 แล้วผลทุกส่วนจะคำนวณใหม่ทันที ไฟล์ไม่ถูกส่งออกจากเครื่อง</p>
+    <div class="members">
+      <span class="chip">กรกนก วิศิษฐศรี</span><span class="chip">ณัฏฐ์ศาสตร์ สีโวย</span><span class="chip">ณัฐณิฌา เหมืองหม้อ</span><span class="chip">ปรัชญา นาเอก</span><span class="chip">ธนันธร ต๊ะนางอย</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="rail" aria-label="ขั้นตอน">
+      <a href="#s1"><b>1</b>นำเข้าข้อมูล</a>
+      <a href="#s2"><b>2</b>ตรวจสอบข้อมูล</a>
+      <a href="#s3"><b>3</b>ทำความสะอาด</a>
+      <a href="#s4"><b>4</b>รูปแบบยอดขาย</a>
+      <a href="#s5"><b>5</b>พฤติกรรมลูกค้า</a>
+      <a href="#s6"><b>6</b>แบ่งกลุ่ม RFM</a>
+      <a href="#s7"><b>7</b>ข้อเสนอแนะ</a>
+    </nav>
+
+    <main id="main">
+      <!-- 1 -->
+      <section id="s1">
+        <div class="sec-head"><span class="step">ขั้นที่ 1</span><h2>นำเข้าข้อมูล</h2></div>
+        <div class="loader">
+          <div class="drop" id="drop">
+            <h3>อัปโหลดไฟล์ข้อมูลจริง</h3>
+            <p class="note">รองรับ <b>Online Retail.xlsx</b> หรือไฟล์ .csv ที่มีคอลัมน์ InvoiceNo, StockCode, Description, Quantity, InvoiceDate, UnitPrice, CustomerID, Country ลากไฟล์มาวางตรงนี้หรือกดเลือกไฟล์</p>
+            <div class="row">
+              <label class="btn primary" for="file">เลือกไฟล์</label>
+              <input id="file" type="file" accept=".xlsx,.xls,.csv" hidden>
+              <button class="btn" id="sampleBtn" type="button">ใช้ข้อมูลจำลอง</button>
+            </div>
+            <p class="note">ไฟล์ .xlsx ขนาด 5 แสนแถวอาจใช้เวลาอ่าน 20–60 วินาที ถ้าต้องการให้เร็วขึ้น ให้เปิดใน Excel แล้ว Save As เป็น CSV ก่อน</p>
+          </div>
+          <div class="panel" style="display:grid;gap:10px;align-content:start">
+            <h3>แหล่งข้อมูล</h3>
+            <p class="note">ข้อมูลทุติยภูมิ Online Retail โดย Daqing Chen, UCI Machine Learning Repository (CC BY 4.0) 541,909 ระเบียน ช่วง 1 ธ.ค. 2010 – 9 ธ.ค. 2011</p>
+            <p class="note"><a href="https://archive.ics.uci.edu/dataset/352/online+retail" target="_blank" rel="noopener">ดาวน์โหลดจาก UCI</a> แล้วบันทึกวันที่ดาวน์โหลดไว้อ้างอิงในรายงาน</p>
+          </div>
+        </div>
+        <div class="status" id="status" role="status">กำลังเตรียมข้อมูล…</div>
+      </section>
+
+      <!-- 2 -->
+      <section id="s2">
+        <div class="sec-head"><span class="step">ขั้นที่ 2</span><h2>ตรวจสอบข้อมูล</h2></div>
+        <p class="explain">ตรวจ 4 เรื่องตาม Proposal คือ ชนิดข้อมูล ค่าว่าง รายการซ้ำ และช่วงวันที่ พร้อมนับค่าผิดปกติที่ต้องจัดการในขั้นถัดไป</p>
+        <div class="kpis" id="inspectKpis"></div>
+        <div class="panel tbl"><table id="missingTbl"></table></div>
+      </section>
+
+      <!-- 3 -->
+      <section id="s3">
+        <div class="sec-head"><span class="step">ขั้นที่ 3</span><h2>ทำความสะอาดข้อมูล</h2></div>
+        <p class="explain">ทำตามลำดับ และเก็บจำนวนระเบียนที่ถูกตัดออกในแต่ละขั้นเพื่อตรวจสอบย้อนกลับได้ แถวที่ไม่มีรหัสลูกค้ายังใช้ในการสรุปยอดขาย แต่ถูกตัดออกเฉพาะส่วนแบ่งกลุ่มลูกค้า</p>
+        <div class="panel tbl">
+          <div class="tbl-head"><h3>บันทึกการทำความสะอาด (Cleaning log)</h3><button class="btn small" data-copy="cleanTbl" type="button">คัดลอกตาราง</button></div>
+          <table id="cleanTbl"></table>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section id="s4">
+        <div class="sec-head"><span class="step">ขั้นที่ 4</span><h2>รูปแบบยอดขาย <span class="obj">วัตถุประสงค์ข้อ 1</span></h2></div>
+        <p class="explain">สรุปยอดขาย (Quantity × UnitPrice หน่วยปอนด์) ตามช่วงเวลา สินค้า และประเทศของลูกค้า</p>
+        <div class="kpis" id="salesKpis"></div>
+        <div class="panel"><h3>ยอดขายรายเดือน</h3><div class="chart"><div id="cMonthly" class="svgbox"></div></div><p class="note" id="monthNote"></p></div>
+        <div class="grid2">
+          <div class="panel"><h3>ยอดขายตามวันในสัปดาห์</h3><div class="chart"><div id="cWeekday" class="svgbox"></div></div></div>
+          <div class="panel"><h3>ยอดขายตามชั่วโมง</h3><div class="chart"><div id="cHour" class="svgbox"></div></div></div>
+        </div>
+        <div class="grid2">
+          <div class="panel"><h3>สินค้าขายดี 10 อันดับ (ตามยอดขาย)</h3><div class="chart tall"><div id="cProducts" class="svgbox"></div></div></div>
+          <div class="panel"><h3>ยอดขายตามประเทศ (ไม่รวม UK)</h3><div class="chart tall"><div id="cCountry" class="svgbox"></div></div><p class="note" id="ukNote"></p></div>
+        </div>
+        <div class="panel tbl">
+          <div class="tbl-head"><h3>ตารางสินค้าขายดี 10 อันดับ</h3><button class="btn small" data-copy="prodTbl" type="button">คัดลอกตาราง</button></div>
+          <table id="prodTbl"></table>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section id="s5">
+        <div class="sec-head"><span class="step">ขั้นที่ 5</span><h2>พฤติกรรมการซื้อรายลูกค้า <span class="obj">วัตถุประสงค์ข้อ 2</span></h2></div>
+        <p class="explain">คำนวณ 3 ตัวแปรต่อลูกค้า 1 ราย โดยใช้วันอ้างอิง (snapshot) = วันที่ทำรายการล่าสุด + 1 วัน<br>
+        <b>Recency</b> จำนวนวันตั้งแต่ซื้อครั้งล่าสุด (น้อย = ดี) · <b>Frequency</b> จำนวนใบแจ้งหนี้ที่ไม่ซ้ำ (มาก = ดี) · <b>Monetary</b> มูลค่าซื้อรวม (มาก = ดี)</p>
+        <div class="kpis" id="custKpis"></div>
+        <div class="grid2">
+          <div class="panel tbl"><h3>สถิติเชิงพรรณนาของ R, F, M</h3><table id="rfmDesc"></table></div>
+          <div class="panel"><h3>การกระจายของ Recency (วัน)</h3><div class="chart"><div id="cRecency" class="svgbox"></div></div></div>
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section id="s6">
+        <div class="sec-head"><span class="step">ขั้นที่ 6</span><h2>แบ่งกลุ่มลูกค้าด้วย RFM <span class="obj">วัตถุประสงค์ข้อ 3</span></h2></div>
+        <p class="explain">ให้คะแนน R, F, M อย่างละ 1–5 โดยแบ่งลูกค้าเป็น 5 ช่วงเท่า ๆ กัน (quintile) ตามลำดับ (rank) แล้วจัดกลุ่มจากคะแนน R และค่าเฉลี่ยของคะแนน F กับ M (FM)</p>
+        <div class="grid2">
+          <div class="panel tbl"><h3>เกณฑ์การจัดกลุ่ม</h3><table id="ruleTbl"></table></div>
+          <div class="panel tbl"><h3>ช่วงค่าจริงของแต่ละคะแนน</h3><table id="rangeTbl"></table></div>
+        </div>
+        <div class="panel tbl">
+          <div class="tbl-head"><h3>สรุปผลแต่ละกลุ่ม</h3><button class="btn small" data-copy="segTbl" type="button">คัดลอกตาราง</button></div>
+          <table id="segTbl"></table>
+        </div>
+        <div class="grid2">
+          <div class="panel"><h3>สัดส่วนลูกค้า เทียบ สัดส่วนรายได้ (%)</h3><div class="chart tall"><div id="cShare" class="svgbox"></div></div></div>
+          <div class="panel"><h3>มูลค่าซื้อเฉลี่ยต่อลูกค้า (£)</h3><div class="chart tall"><div id="cAvgM" class="svgbox"></div></div></div>
+        </div>
+        <div class="panel tbl">
+          <div class="tbl-head">
+            <h3>ค้นหาลูกค้า</h3>
+            <div class="row">
+              <input type="search" id="custSearch" placeholder="รหัสลูกค้า" aria-label="ค้นหารหัสลูกค้า">
+              <select id="segFilter" aria-label="กรองกลุ่ม"></select>
+            </div>
+          </div>
+          <table id="custTbl"></table>
+          <p class="note" id="custNote"></p>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section id="s7">
+        <div class="sec-head"><span class="step">ขั้นที่ 7</span><h2>สรุปผลและข้อเสนอแนะ <span class="obj">วัตถุประสงค์ข้อ 4</span></h2></div>
+        <div class="panel"><h3>ข้อค้นพบหลัก</h3><ol class="plain" id="findings"></ol></div>
+        <div class="panel tbl"><h3>แนวทางการตลาดและสินค้าตามกลุ่มลูกค้า</h3><table id="recTbl"></table></div>
+        <div class="panel"><h3>ข้อจำกัดของการศึกษา</h3>
+          <ol class="plain">
+            <li>ชุดข้อมูลไม่มีต้นทุน กำไร อายุ ช่องทางการซื้อ หรือโปรโมชั่น จึงไม่วิเคราะห์ประเด็นเหล่านี้</li>
+            <li>แถวที่ไม่มีรหัสลูกค้าถูกตัดออกจากการแบ่งกลุ่ม RFM</li>
+            <li>เดือนธันวาคม 2011 มีข้อมูลถึงวันที่ 9 เท่านั้น ยอดขายเดือนนี้จึงต่ำกว่าความจริง</li>
+            <li>ลูกค้าบางรายเป็นผู้ค้าส่ง ทำให้ค่า Monetary บางรายสูงผิดปกติ</li>
+          </ol>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const fmt0=n=>n.toLocaleString("en-GB",{maximumFractionDigits:0});
+const fmt1=n=>n.toLocaleString("en-GB",{minimumFractionDigits:1,maximumFractionDigits:1});
+const fmt2=n=>n.toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2});
+const gbp=n=>"£"+fmt0(n);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const DAYS_TH=["จันทร์","อังคาร","พุธ","พฤหัสฯ","ศุกร์","เสาร์","อาทิตย์"];
+const SEGS=[
+ {k:"Champions",th:"ลูกค้าชั้นยอด",rule:"R ≥ 4 และ FM ≥ 4",c:"good",mkt:"โปรแกรมสมาชิก VIP ให้เห็นสินค้าใหม่ก่อน ขอรีวิว",prod:"สินค้าใหม่และชุดของขวัญพรีเมียม"},
+ {k:"Loyal Customers",th:"ลูกค้าประจำ",rule:"R ≥ 3 และ FM ≥ 3",c:"good",mkt:"ส่วนลดตามปริมาณ สะสมแต้ม",prod:"Cross-sell สินค้าที่มักซื้อคู่กัน"},
+ {k:"Potential Loyalists",th:"มีแนวโน้มเป็นลูกค้าประจำ",rule:"R ≥ 4 และ FM 2–3.5",c:"data",mkt:"อีเมลแนะนำสินค้าตามประวัติการซื้อ ข้อเสนอสำหรับครั้งถัดไป",prod:"ชุดสินค้าแบบ bundle"},
+ {k:"New Customers",th:"ลูกค้าใหม่",rule:"R ≥ 4 และ FM < 2",c:"data",mkt:"ข้อความต้อนรับ คูปองซื้อครั้งที่ 2",prod:"แนะนำสินค้าขายดี 10 อันดับ"},
+ {k:"Need Attention",th:"ต้องกระตุ้น",rule:"R = 3 และ FM < 3",c:"warn",mkt:"ข้อเสนอจำกัดเวลา",prod:"สินค้าตามฤดูกาลและเทศกาล"},
+ {k:"At Risk",th:"เสี่ยงหาย",rule:"R ≤ 2 และ FM ≥ 3",c:"bad",mkt:"แคมเปญดึงกลับ (win-back) ส่วนลดเฉพาะบุคคล",prod:"สินค้าที่เคยซื้อหรือใกล้เคียง"},
+ {k:"Hibernating / Lost",th:"ห่างหาย",rule:"R ≤ 2 และ FM < 3",c:"muted",mkt:"แคมเปญต้นทุนต่ำก่อนเทศกาล หรือลดความถี่การติดต่อ",prod:"สินค้าราคาเข้าถึงง่าย"}
+];
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue("--"+v).trim();
+const segColor=s=>css(SEGS.find(x=>x.k===s).c);
+function segChip(k){return `<span class="seg"><i style="background:var(--${SEGS.find(x=>x.k===k).c})"></i>${esc(k)}</span>`}
+function setStatus(msg,cls){const s=$("status");s.className="status"+(cls?" "+cls:"");s.textContent=msg}
+
+/* ---------- parsing ---------- */
+const ALIAS={inv:["invoiceno","invoice"],stock:["stockcode"],desc:["description"],qty:["quantity"],date:["invoicedate"],price:["unitprice","price"],cid:["customerid","customer id"],country:["country"]};
+function excelSerialToDate(n){const ms=Math.round((n-25569)*86400000);const d=new Date(ms);return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),d.getUTCHours(),d.getUTCMinutes(),d.getUTCSeconds())}
+function toDate(v){
+  if(v instanceof Date)return v;
+  if(typeof v==="number")return excelSerialToDate(v);
+  if(typeof v==="string"){
+    let m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})\s+(\d{1,2}):(\d{2})/);
+    if(m){let y=+m[3];if(y<100)y+=2000;return new Date(y,+m[1]-1,+m[2],+m[4],+m[5])}
+    m=v.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    if(m)return new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]);
+    const d=new Date(v);if(!isNaN(d))return d;
+  }
+  return null;
+}
+function rowsFromAoa(aoa){
+  const head=aoa[0].map(h=>String(h||"").trim().toLowerCase());
+  const idx={};
+  for(const k in ALIAS){idx[k]=head.findIndex(h=>ALIAS[k].includes(h));if(idx[k]<0)throw new Error("ไม่พบคอลัมน์ "+ALIAS[k][0]+" ในไฟล์ ตรวจสอบว่าแถวแรกเป็นชื่อคอลัมน์");}
+  const out=[];
+  for(let i=1;i<aoa.length;i++){
+    const a=aoa[i];if(!a||a.length===0)continue;
+    const cidRaw=a[idx.cid];const cidNum=cidRaw===""||cidRaw==null?null:Number(cidRaw);
+    out.push({inv:String(a[idx.inv]??"").trim(),stock:String(a[idx.stock]??"").trim(),desc:a[idx.desc]==null?"":String(a[idx.desc]).trim(),
+      qty:Number(a[idx.qty]),date:toDate(a[idx.date]),price:Number(a[idx.price]),cid:(cidNum==null||isNaN(cidNum))?null:cidNum,country:String(a[idx.country]??"").trim(),
+      _descNull:a[idx.desc]==null||a[idx.desc]===""});
+  }
+  return out;
+}
+/* ---------- file reading without libraries: CSV parser + minimal XLSX (zip) reader ---------- */
+function parseCSV(text){
+  const out=[];let row=[],f="",q=false,i=0;const n=text.length;
+  if(text.charCodeAt(0)===0xFEFF)i=1;
+  for(;i<n;i++){const ch=text[i];
+    if(q){if(ch==='"'){if(text[i+1]==='"'){f+='"';i++}else q=false}else f+=ch}
+    else if(ch==='"')q=true;
+    else if(ch===','){row.push(f);f=""}
+    else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(f);f="";if(row.length>1||row[0]!=="")out.push(row);row=[]}
+    else f+=ch;}
+  if(f!==""||row.length){row.push(f);out.push(row)}
+  return out.map((r,k)=>k===0?r:r.map(v=>v===""?null:v));
+}
+const XENT={amp:"&",lt:"<",gt:">",quot:'"',apos:"'"};
+const xdec=s=>s.replace(/&(#x?[0-9a-fA-F]+|amp|lt|gt|quot|apos);/g,(m,e)=>e[0]==="#"?String.fromCodePoint(e[1]==="x"?parseInt(e.slice(2),16):+e.slice(1)):XENT[e]);
+async function unzip(buf){
+  const u8=new Uint8Array(buf),dv=new DataView(buf);
+  let e=u8.length-22;while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;
+  if(e<0)throw new Error("ไฟล์ไม่ใช่ .xlsx ที่ถูกต้อง");
+  const cnt=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const files={};const td=new TextDecoder();
+  for(let i=0;i<cnt;i++){
+    const method=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lho=dv.getUint32(p+42,true);
+    files[td.decode(u8.subarray(p+46,p+46+nl))]={method,cs,lho};p+=46+nl+el+cl;}
+  return async name=>{const f=files[name];if(!f)return null;
+    const s=f.lho+30+dv.getUint16(f.lho+26,true)+dv.getUint16(f.lho+28,true);const data=u8.subarray(s,s+f.cs);
+    if(f.method===0)return td.decode(data);
+    if(typeof DecompressionStream==="undefined")throw new Error("เบราว์เซอร์นี้อ่าน .xlsx ไม่ได้ ให้บันทึกไฟล์เป็น .csv แล้วลองใหม่");
+    return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();};
+}
+function colIdx(ref){let n=0;for(let i=0;i<ref.length;i++)n=n*26+ref.charCodeAt(i)-64;return n-1}
+async function readXlsx(buf){
+  const get=await unzip(buf);
+  let sheetPath="xl/worksheets/sheet1.xml";
+  const wb=await get("xl/workbook.xml"),rels=await get("xl/_rels/workbook.xml.rels");
+  if(wb&&rels){const m=wb.match(/<sheet\b[^>]*\br:id="([^"]+)"/);if(m){const r=rels.match(new RegExp('<Relationship\\b[^>]*Id="'+m[1]+'"[^>]*Target="([^"]+)"'))||rels.match(new RegExp('<Relationship\\b[^>]*Target="([^"]+)"[^>]*Id="'+m[1]+'"'));
+    if(r)sheetPath=r[1].startsWith("/")?r[1].slice(1):"xl/"+r[1].replace(/^\.\//,"")}}
+  const ssx=await get("xl/sharedStrings.xml");const ss=[];
+  if(ssx){const re=/<si>([\s\S]*?)<\/si>/g;let m;while((m=re.exec(ssx))){let t="";const rt=/<t[^>]*>([\s\S]*?)<\/t>/g;let k;while((k=rt.exec(m[1])))t+=k[1];ss.push(xdec(t))}}
+  const xml=await get(sheetPath);if(!xml)throw new Error("ไม่พบชีตข้อมูลในไฟล์");
+  const aoa=[];const rowRe=/<row\b[^>]*>([\s\S]*?)<\/row>/g;const cRe=/<c\b r="([A-Z]+)\d+"([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;let rm;
+  while((rm=rowRe.exec(xml))){const r=[];let cm;cRe.lastIndex=0;
+    while((cm=cRe.exec(rm[1]))){const ci=colIdx(cm[1]),attrs=cm[2],body=cm[3]||"";const t=(attrs.match(/\bt="([^"]+)"/)||[])[1];let v=null;
+      if(t==="inlineStr"){const x=body.match(/<t[^>]*>([\s\S]*?)<\/t>/);v=x?xdec(x[1]):""}
+      else{const x=body.match(/<v>([\s\S]*?)<\/v>/);if(x){v=x[1];if(t==="s")v=ss[+v];else if(t==="str"||t==="e")v=xdec(v);else if(t==="b")v=v==="1";else v=+v}}
+      r[ci]=v;}
+    for(let i=0;i<r.length;i++)if(r[i]===undefined)r[i]=null;
+    aoa.push(r);}
+  return aoa;
+}
+function readFile(file){
+  const main=$("main");main.classList.add("busy");
+  setStatus(`กำลังอ่าน ${file.name} (${(file.size/1048576).toFixed(1)} MB)… อาจใช้เวลาสักครู่`);
+  const done=()=>main.classList.remove("busy");
+  const fail=e=>{done();setStatus("อ่านไฟล์ไม่สำเร็จ: "+(e&&e.message||e),"sample")};
+  const isCsv=/\.csv$/i.test(file.name);
+  if(/\.xls$/i.test(file.name)){fail("ไฟล์ .xls รุ่นเก่ายังไม่รองรับ ให้บันทึกเป็น .xlsx หรือ .csv");return}
+  const fr=new FileReader();fr.onerror=()=>fail("เลือกไฟล์ใหม่อีกครั้ง");
+  fr.onload=()=>setTimeout(async()=>{
+    try{const aoa=isCsv?parseCSV(fr.result):await readXlsx(fr.result);
+      const rows=rowsFromAoa(aoa);done();run(rows,{real:true,name:file.name});}
+    catch(e){fail(e)}},30);
+  isCsv?fr.readAsText(file,"utf-8"):fr.readAsArrayBuffer(file);
+}
+
+/* ---------- sample data (clearly labelled as simulated) ---------- */
+function makeSample(){
+  let s=20260930;const rnd=()=>((s=(s*1664525+1013904223)>>>0)/4294967296);
+  const pick=(arr,w)=>{let r=rnd()*w.reduce((a,b)=>a+b,0);for(let i=0;i<arr.length;i++){r-=w[i];if(r<=0)return arr[i]}return arr[arr.length-1]};
+  const nouns=["T-LIGHT HOLDER","GIFT BAG","PAPER LANTERN","CERAMIC MUG","WALL SIGN","CAKE STAND","BUNTING","JAM JAR SET","DOORSTOP","LUNCH BAG","PHOTO FRAME","CANDLE","TEA TOWEL","GIFT WRAP","SNOW GLOBE","CUSHION COVER","STORAGE TIN","HOT WATER BOTTLE"];
+  const adj=["HEART","VINTAGE","SPOTTY","FLORAL","RETRO","WHITE","PINK","CHRISTMAS","BIRD","STAR","GINGHAM","ENAMEL"];
+  const prods=[];for(let i=0;i<180;i++){prods.push({code:String(20000+i*37),desc:adj[i%adj.length]+" "+nouns[(i*7)%nouns.length],price:[0.42,0.85,1.25,1.65,2.1,2.95,3.75,4.95,7.95][Math.floor(rnd()*9)],pop:Math.pow(rnd(),3)+0.02})}
+  const popW=prods.map(p=>p.pop);
+  const countries=["United Kingdom","Germany","France","EIRE","Spain","Netherlands","Belgium","Switzerland","Portugal","Australia","Norway","Italy"];
+  const cW=[88,2.2,2,1.8,.6,.6,.5,.4,.35,.3,.3,.3];
+  const custs=[];for(let i=0;i<1600;i++){custs.push({id:12346+i*3,country:pick(countries,cW),act:Math.pow(rnd(),2.2),start:rnd(),life:rnd()})}
+  const monthW=[6,5,4.5,6,5,6,6,6,7,9,11,13.5,3]; // Dec-2010 .. Dec-2011
+  const rows=[];let invNo=536365;
+  const start=new Date(2010,11,1);
+  for(let o=0;o<7500;o++){
+    const guest=rnd()<0.12;
+    const c=guest?null:pick(custs,custs.map(x=>x.act+0.02));
+    let mi=pick([0,1,2,3,4,5,6,7,8,9,10,11,12],monthW);
+    if(c){const lo=Math.floor(c.start*8), hi=Math.min(12,lo+2+Math.floor(c.life*11));mi=Math.min(hi,Math.max(lo,mi));if(c.act<0.05&&rnd()<.6)mi=Math.min(mi,5)}
+    const y=2010+(mi>0?1:0),m=(11+mi)%12;
+    const maxDay=mi===12?9:new Date(y,m+1,0).getDate();
+    let d=new Date(y,m,1+Math.floor(rnd()*maxDay),pick([7,8,9,10,11,12,13,14,15,16,17,18,19,20],[1,3,6,9,11,13,11,9,7,4,2,1.2,.6,.3]),Math.floor(rnd()*60));
+    if(d.getDay()===6)d=new Date(d.getTime()-2*86400000);
+    const lines=1+Math.floor(rnd()*(guest?30:14));
+    const cancel=rnd()<0.018;const inv=(cancel?"C":"")+(invNo++);
+    for(let l=0;l<lines;l++){
+      const p=pick(prods,popW);let q=pick([1,2,3,4,6,8,12,24,48],[5,4,3,3,4,2,5,2,.8]);if(cancel)q=-q;
+      rows.push({inv,stock:p.code,desc:p.desc,qty:q,date:d,price:rnd()<0.004?0:p.price,cid:c?c.id:null,country:c?c.country:"United Kingdom",_descNull:false});
+      if(rnd()<0.002)rows.push({...rows[rows.length-1]});
+    }
+  }
+  return rows;
+}
+
+/* ---------- analysis (mirrors the notebook) ---------- */
+function analyze(raw){
+  const R={};
+  // step 2 inspection
+  const miss={InvoiceNo:0,StockCode:0,Description:0,Quantity:0,InvoiceDate:0,UnitPrice:0,CustomerID:0,Country:0};
+  let minD=Infinity,maxD=-Infinity,cancelN=0,qNeg=0,pNeg=0;
+  for(const r of raw){
+    if(!r.inv)miss.InvoiceNo++; if(!r.stock)miss.StockCode++; if(r._descNull)miss.Description++;
+    if(isNaN(r.qty))miss.Quantity++; if(!r.date)miss.InvoiceDate++; if(isNaN(r.price))miss.UnitPrice++;
+    if(r.cid==null)miss.CustomerID++; if(!r.country)miss.Country++;
+    if(r.date){const t=r.date.getTime();if(t<minD)minD=t;if(t>maxD)maxD=t}
+    if(r.inv.startsWith("C"))cancelN++; if(r.qty<=0)qNeg++; if(r.price<=0)pNeg++;
+  }
+  // step 3 cleaning
+  const log=[["ข้อมูลตั้งต้น",raw.length,0]];
+  const seen=new Set();const d1=[];
+  for(const r of raw){const k=r.inv+"\u0001"+r.stock+"\u0001"+r.desc+"\u0001"+r.qty+"\u0001"+(r.date?r.date.getTime():"")+"\u0001"+r.price+"\u0001"+r.cid+"\u0001"+r.country;if(!seen.has(k)){seen.add(k);d1.push(r)}}
+  const dupN=raw.length-d1.length;
+  log.push(["1. ตัดรายการซ้ำทั้งแถว",d1.length,dupN]);
+  const d2=d1.filter(r=>!r.inv.startsWith("C"));
+  log.push(["2. แยกรายการยกเลิก (InvoiceNo ขึ้นต้นด้วย C)",d2.length,d1.length-d2.length]);
+  const sales=d2.filter(r=>r.qty>0&&r.price>0&&r.date);
+  log.push(["3. ตัด Quantity ≤ 0 หรือ UnitPrice ≤ 0",sales.length,d2.length-sales.length]);
+  for(const r of sales)r.total=r.qty*r.price;
+  log.push(["4. สร้าง TotalPrice → ข้อมูลวิเคราะห์ยอดขาย",sales.length,0]);
+  const cust=sales.filter(r=>r.cid!=null);
+  log.push(["5. ตัดแถวที่ไม่มี CustomerID → ข้อมูลสำหรับ RFM",cust.length,sales.length-cust.length]);
+  R.inspect={rows:raw.length,cols:8,miss,dupN,minD:new Date(minD),maxD:new Date(maxD),cancelN,qNeg,pNeg};
+  R.log=log;
+
+  // step 4 sales
+  const monthly=new Map(),wd=new Array(7).fill(0),hr=new Map(),prod=new Map(),ctry=new Map();
+  const allInv=new Set();let total=0;
+  for(const r of sales){
+    total+=r.total;allInv.add(r.inv);
+    const mk=r.date.getFullYear()+"-"+String(r.date.getMonth()+1).padStart(2,"0");
+    let m=monthly.get(mk);if(!m){m={s:0,o:new Set(),c:new Set()};monthly.set(mk,m)}m.s+=r.total;m.o.add(r.inv);if(r.cid!=null)m.c.add(r.cid);
+    wd[(r.date.getDay()+6)%7]+=r.total;
+    const h=r.date.getHours();hr.set(h,(hr.get(h)||0)+r.total);
+    const pk=r.stock+"\u0001"+r.desc;let p=prod.get(pk);if(!p){p={code:r.stock,desc:r.desc,s:0,q:0};prod.set(pk,p)}p.s+=r.total;p.q+=r.qty;
+    let c=ctry.get(r.country);if(!c){c={s:0,o:new Set(),c:new Set()};ctry.set(r.country,c)}c.s+=r.total;c.o.add(r.inv);if(r.cid!=null)c.c.add(r.cid);
+  }
+  R.total=total;R.orders=allInv.size;R.aov=total/allInv.size;
+  R.monthly=[...monthly.entries()].sort((a,b)=>a[0]<b[0]?-1:1).map(([k,v])=>({k,s:v.s,o:v.o.size,c:v.c.size}));
+  R.weekday=wd;
+  const hrs=[...hr.keys()].sort((a,b)=>a-b);R.hours=hrs.map(h=>({h,s:hr.get(h)}));
+  R.topProd=[...prod.values()].sort((a,b)=>b.s-a.s).slice(0,10);
+  R.countries=[...ctry.entries()].map(([k,v])=>({k,s:v.s,o:v.o.size,c:v.c.size,share:v.s/total*100})).sort((a,b)=>b.s-a.s);
+
+  // step 5 RFM
+  let maxC=-Infinity;for(const r of cust){const t=r.date.getTime();if(t>maxC)maxC=t}
+  const md=new Date(maxC);const snap=new Date(md.getFullYear(),md.getMonth(),md.getDate()+1);
+  R.snapshot=snap;
+  const cm=new Map();
+  for(const r of cust){let c=cm.get(r.cid);if(!c){c={id:r.cid,last:0,inv:new Set(),m:0,country:r.country};cm.set(r.cid,c)}const t=r.date.getTime();if(t>c.last)c.last=t;c.inv.add(r.inv);c.m+=r.total}
+  const list=[...cm.values()].sort((a,b)=>a.id-b.id).map(c=>({id:c.id,country:c.country,R:Math.floor((snap-c.last)/86400000),F:c.inv.size,M:c.m}));
+  const n=list.length;
+  // pandas: qcut(rank(method="first"), 5) — ranks 1..n, edges at 1+(n-1)*k/5
+  function score(key,asc){
+    const order=list.map((c,i)=>i).sort((a,b)=>(list[a][key]-list[b][key])||(a-b));
+    order.forEach((ix,pos)=>{const r=pos+1;let k=1;while(k<5&&r>1+(n-1)*k/5)k++;list[ix][key+"s"]=asc?k:6-k});
+  }
+  score("R",false);score("F",true);score("M",true);
+  for(const c of list){c.FM=(c.Fs+c.Ms)/2;const r=c.Rs,fm=c.FM;
+    c.seg= r>=4&&fm>=4?"Champions": r>=3&&fm>=3?"Loyal Customers": r>=4&&fm>=2?"Potential Loyalists": r>=4?"New Customers": r<=2&&fm>=3?"At Risk": r===3?"Need Attention":"Hibernating / Lost";}
+  R.cust=list;R.repeat=n?list.filter(c=>c.F>1).length/n*100:0;
+  const desc=k=>{const v=list.map(c=>c[k]).sort((a,b)=>a-b);const q=p=>{const x=(v.length-1)*p,lo=Math.floor(x),hi=Math.ceil(x);return v[lo]+(v[hi]-v[lo])*(x-lo)};return{min:v[0],q1:q(.25),med:q(.5),mean:v.reduce((a,b)=>a+b,0)/v.length,q3:q(.75),max:v[v.length-1]}};
+  R.desc={R:desc("R"),F:desc("F"),M:desc("M")};
+  const ranges={};for(const k of ["R","F","M"]){ranges[k]={};for(let s=1;s<=5;s++){const v=list.filter(c=>c[k+"s"]===s).map(c=>c[k]);ranges[k][s]=v.length?[Math.min(...v),Math.max(...v)]:[null,null]}}
+  R.ranges=ranges;
+  const totM=list.reduce((a,c)=>a+c.M,0);
+  R.segs=SEGS.map(s=>{const g=list.filter(c=>c.seg===s.k);const sm=g.reduce((a,c)=>a+c.M,0);
+    return{...s,n:g.length,pc:g.length/n*100,rev:sm,pr:totM?sm/totM*100:0,aR:g.length?g.reduce((a,c)=>a+c.R,0)/g.length:0,aF:g.length?g.reduce((a,c)=>a+c.F,0)/g.length:0,aM:g.length?sm/g.length:0}}).filter(s=>s.n>0);
+  return R;
+}
+
+/* ---------- rendering ---------- */
+function kpis(el,items){$(el).innerHTML=items.map(([l,v])=>`<div class="kpi"><span>${l}</span><strong>${v}</strong></div>`).join("")}
+function table(el,head,rows,numCols=[],foot){
+  const th=head.map((h,i)=>`<th${numCols.includes(i)?' class="n"':""}>${h}</th>`).join("");
+  const tb=rows.map(r=>"<tr>"+r.map((c,i)=>`<td${numCols.includes(i)?' class="n"':""}>${c}</td>`).join("")+"</tr>").join("");
+  $(el).innerHTML=`<thead><tr>${th}</tr></thead><tbody>${tb}${foot||""}</tbody>`;
+}
+const dstr=d=>d.toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"numeric"});
+
+/* ---------- self-made SVG bar charts (no library) ---------- */
+const CH={};
+function niceStep(v){if(v<=0)return 1;const r=v/4,p=Math.pow(10,Math.floor(Math.log10(r))),f=r/p;return (f<=1?1:f<=2?2:f<=5?5:10)*p}
+function svgEl(w,h,inner,label){return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" role="img" aria-label="${esc(label||"")}" style="display:block;overflow:visible">${inner}</svg>`}
+function trunc(s,n){s=String(s);return s.length>n?s.slice(0,n-1)+"…":s}
+function drawBars(id,o){CH[id]=o;const box=$(id);if(!box)return;
+  const W=Math.max(260,box.clientWidth||600),H=box.clientHeight||280;
+  const muted=css("muted"),line=css("line"),ink=css("ink");
+  const series=o.series||[{values:o.values,colors:o.colors,label:""}];
+  const all=series.flatMap(s=>s.values);const st=niceStep(Math.max(...all,0)),mx=Math.max(st,Math.ceil(Math.max(...all,0)/st)*st);
+  const ticks=[];for(let t=0;t<=mx+1e-9;t+=st)ticks.push(t);const fa=o.fmtAxis||(v=>fmt0(v)),fv=o.fmtVal||(v=>fmt0(v));
+  let g="";const legendH=o.series&&o.series.length>1?22:0;
+  if(legendH){let x=0;series.forEach(s=>{g+=`<rect x="${x}" y="2" width="11" height="11" rx="2" fill="${s.colors}"/><text x="${x+16}" y="12" font-size="12" fill="${muted}">${esc(s.label)}</text>`;x+=s.label.length*9+40})}
+  if(!o.horizontal){
+    const L=56,B=o.rotate?54:26,T=8+legendH,R=6,pw=W-L-R,ph=H-T-B,n=o.labels.length,bw=pw/n;
+    ticks.forEach(t=>{const y=T+ph-t/mx*ph;g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="${line}"/><text x="${L-6}" y="${y+4}" text-anchor="end" font-size="11" fill="${muted}" class="mono">${fa(t)}</text>`});
+    const every=Math.ceil(n/Math.max(1,Math.floor(pw/(o.rotate?24:44))));
+    o.labels.forEach((lab,i)=>{const v=series[0].values[i];const h=v/mx*ph;const x=L+i*bw+bw*.12,w=bw*.76;const c=Array.isArray(series[0].colors)?series[0].colors[i]:series[0].colors;
+      g+=`<rect x="${x}" y="${T+ph-h}" width="${Math.max(1,w)}" height="${Math.max(0,h)}" rx="2" fill="${c}"><title>${esc(o.tipLabel?o.tipLabel(i):lab)}: ${fv(v)}</title></rect>`;
+      if(i%every===0){const cx=L+i*bw+bw/2;
+        g+=o.rotate?`<text transform="translate(${cx},${T+ph+10}) rotate(-35)" text-anchor="end" font-size="11" fill="${muted}">${esc(trunc(lab,16))}</text>`
+                   :`<text x="${cx}" y="${T+ph+16}" text-anchor="middle" font-size="11" fill="${muted}">${esc(lab)}</text>`}});
+    g+=`<line x1="${L}" x2="${W-R}" y1="${T+ph}" y2="${T+ph}" stroke="${muted}" stroke-opacity=".5"/>`;
+  }else{
+    const maxLab=Math.max(...o.labels.map(l=>Math.min(24,String(l).length)));
+    const L=Math.min(W*.45,maxLab*7.2+10),B=22,T=4+legendH,R=10,pw=W-L-R,ph=H-T-B,n=o.labels.length,rh=ph/n,ns=series.length;
+    ticks.forEach(t=>{const x=L+t/mx*pw;g+=`<line x1="${x}" x2="${x}" y1="${T}" y2="${T+ph}" stroke="${line}"/><text x="${x}" y="${T+ph+15}" text-anchor="middle" font-size="11" fill="${muted}">${fa(t)}</text>`});
+    o.labels.forEach((lab,i)=>{
+      series.forEach((s,k)=>{const v=s.values[i];const bh=rh*.72/ns;const y=T+i*rh+rh*.14+k*bh;const c=Array.isArray(s.colors)?s.colors[i]:s.colors;
+        g+=`<rect x="${L}" y="${y}" width="${Math.max(0,v/mx*pw)}" height="${Math.max(1,bh-1)}" rx="2" fill="${c}"><title>${esc(lab)}${s.label?" · "+esc(s.label):""}: ${fv(v)}</title></rect>`});
+      g+=`<text x="${L-8}" y="${T+i*rh+rh/2+4}" text-anchor="end" font-size="11" fill="${ink}">${esc(trunc(lab,24))}</text>`});
+  }
+  box.innerHTML=svgEl(W,H,g,o.label);
+}
+const gbpAxis=v=>"£"+(Math.abs(v)>=1e6?fmt1(v/1e6)+"m":Math.abs(v)>=1000?fmt0(v/1000)+"k":fmt0(v));
+
+function drawCharts(R){
+  const data=css("data"),data2=css("data-2"),accent=css("accent");
+  const last=R.monthly[R.monthly.length-1];
+  const lastPartial=R.inspect.maxD.getDate()<new Date(R.inspect.maxD.getFullYear(),R.inspect.maxD.getMonth()+1,0).getDate()-2;
+  const MTH=["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+  drawBars("cMonthly",{label:"ยอดขายรายเดือน",labels:R.monthly.map(m=>MTH[+m.k.slice(5)-1]+" "+m.k.slice(2,4)),tipLabel:i=>R.monthly[i].k,values:R.monthly.map(m=>m.s),
+    colors:R.monthly.map((m,i)=>i===R.monthly.length-1&&lastPartial?data2:data),fmtAxis:gbpAxis,fmtVal:gbp});
+  $("monthNote").textContent=lastPartial?`แท่งสีอ่อน (${last.k}) มีข้อมูลถึงวันที่ ${R.inspect.maxD.getDate()} เท่านั้น จึงไม่ควรเทียบกับเดือนอื่นโดยตรง`:"";
+  const wmax=Math.max(...R.weekday);
+  drawBars("cWeekday",{label:"ยอดขายตามวัน",labels:DAYS_TH,values:R.weekday,colors:R.weekday.map(v=>v===wmax?accent:data),fmtAxis:gbpAxis,fmtVal:gbp});
+  const hmax=Math.max(...R.hours.map(h=>h.s));
+  drawBars("cHour",{label:"ยอดขายตามชั่วโมง",labels:R.hours.map(h=>String(h.h)),tipLabel:i=>R.hours[i].h+":00 น.",values:R.hours.map(h=>h.s),colors:R.hours.map(h=>h.s===hmax?accent:data),fmtAxis:gbpAxis,fmtVal:gbp});
+  drawBars("cProducts",{label:"สินค้าขายดี",horizontal:true,labels:R.topProd.map(p=>p.desc),values:R.topProd.map(p=>p.s),colors:data,fmtAxis:gbpAxis,fmtVal:gbp});
+  const cs=R.countries.filter(c=>c.k!=="United Kingdom").slice(0,10);
+  drawBars("cCountry",{label:"ยอดขายตามประเทศ",horizontal:true,labels:cs.map(c=>c.k),values:cs.map(c=>c.s),colors:data,fmtAxis:gbpAxis,fmtVal:gbp});
+  const uk=R.countries.find(c=>c.k==="United Kingdom");
+  $("ukNote").textContent=uk?`United Kingdom มีสัดส่วน ${fmt1(uk.share)}% ของยอดขายทั้งหมด (${gbp(uk.s)}) จึงแยกออกเพื่อให้เห็นความต่างของประเทศอื่นชัดขึ้น`:"";
+  const maxR=Math.max(...R.cust.map(c=>c.R));const bw=15;const bins=new Array(Math.floor(maxR/bw)+1).fill(0);
+  R.cust.forEach(c=>bins[Math.floor(c.R/bw)]++);
+  drawBars("cRecency",{label:"ฮิสโตแกรม Recency",labels:bins.map((_,i)=>String(i*bw)),tipLabel:i=>`${i*bw}–${i*bw+bw-1} วัน`,values:bins,colors:data,fmtVal:v=>fmt0(v)+" ราย"});
+  drawBars("cShare",{label:"สัดส่วนลูกค้าและรายได้",horizontal:true,labels:R.segs.map(s=>s.k),fmtAxis:v=>fmt0(v)+"%",fmtVal:v=>fmt1(v)+"%",
+    series:[{label:"สัดส่วนลูกค้า",values:R.segs.map(s=>s.pc),colors:data2},{label:"สัดส่วนรายได้",values:R.segs.map(s=>s.pr),colors:data}]});
+  drawBars("cAvgM",{label:"มูลค่าซื้อเฉลี่ยต่อกลุ่ม",horizontal:true,labels:R.segs.map(s=>s.k),values:R.segs.map(s=>s.aM),colors:R.segs.map(s=>segColor(s.k)),fmtAxis:gbpAxis,fmtVal:v=>gbp(v)+" ต่อราย"});
+}
+
+let CUR=null;
+function render(R,meta){
+  CUR=R;
+  const I=R.inspect;
+  kpis("inspectKpis",[["จำนวนระเบียน",fmt0(I.rows)],["รายการซ้ำทั้งแถว",fmt0(I.dupN)],["ใบแจ้งหนี้ยกเลิก (C)",fmt0(I.cancelN)],["ช่วงวันที่",`<span style="font-size:.95rem">${dstr(I.minD)} – ${dstr(I.maxD)}</span>`]]);
+  const types={InvoiceNo:"ข้อความ",StockCode:"ข้อความ",Description:"ข้อความ",Quantity:"จำนวนเต็ม",InvoiceDate:"วันเวลา",UnitPrice:"ทศนิยม",CustomerID:"ตัวเลข",Country:"ข้อความ"};
+  table("missingTbl",["คอลัมน์","ชนิดข้อมูล","ค่าว่าง","% ค่าว่าง","หมายเหตุ"],Object.keys(I.miss).map(k=>[k,types[k],fmt0(I.miss[k]),fmt2(I.miss[k]/I.rows*100),
+    k==="Quantity"?`≤ 0 จำนวน ${fmt0(I.qNeg)} แถว`:k==="UnitPrice"?`≤ 0 จำนวน ${fmt0(I.pNeg)} แถว`:k==="CustomerID"&&I.miss[k]?"ตัดออกเฉพาะส่วน RFM":""]),[2,3]);
+  table("cleanTbl",["ขั้นตอน","คงเหลือ (แถว)","ตัดออก (แถว)"],R.log.map(l=>[esc(l[0]),fmt0(l[1]),l[2]?fmt0(l[2]):"–"]),[1,2]);
+  // sales
+  const best=R.monthly.reduce((a,b)=>b.s>a.s?b:a);
+  kpis("salesKpis",[["ยอดขายรวม",gbp(R.total)],["จำนวนใบสั่งซื้อ",fmt0(R.orders)],["มูลค่าเฉลี่ยต่อใบ",gbp(R.aov)],["เดือนยอดขายสูงสุด",best.k]]);
+  table("prodTbl",["#","รหัส","ชื่อสินค้า","จำนวน (ชิ้น)","ยอดขาย (£)"],R.topProd.map((p,i)=>[i+1,esc(p.code),esc(p.desc),fmt0(p.q),fmt2(p.s)]),[0,3,4]);
+  // customers
+  kpis("custKpis",[["จำนวนลูกค้า",fmt0(R.cust.length)],["ลูกค้าที่ซื้อซ้ำ",fmt1(R.repeat)+"%"],["วันอ้างอิง",`<span style="font-size:.95rem">${dstr(R.snapshot)}</span>`],["มูลค่าซื้อเฉลี่ยต่อราย",gbp(R.desc.M.mean)]]);
+  const D=R.desc;
+  table("rfmDesc",["สถิติ","Recency (วัน)","Frequency (ครั้ง)","Monetary (£)"],[["ต่ำสุด","min"],["Q1","q1"],["มัธยฐาน","med"],["ค่าเฉลี่ย","mean"],["Q3","q3"],["สูงสุด","max"]].map(([l,k])=>[l,fmt1(D.R[k]),fmt1(D.F[k]),fmt2(D.M[k])]),[1,2,3]);
+  // RFM
+  table("ruleTbl",["กลุ่ม","เงื่อนไข","ความหมาย"],SEGS.map(s=>[segChip(s.k),s.rule,s.th]));
+  const rg=R.ranges,rr=(k,s)=>rg[k][s][0]==null?"–":(k==="M"?fmt0(rg[k][s][0])+"–"+fmt0(rg[k][s][1]):rg[k][s][0]+"–"+rg[k][s][1]);
+  table("rangeTbl",["คะแนน","Recency (วัน)","Frequency","Monetary (£)"],[5,4,3,2,1].map(s=>[s,rr("R",s),rr("F",s),rr("M",s)]),[0,1,2,3]);
+  const tot=R.segs.reduce((a,s)=>({n:a.n+s.n,rev:a.rev+s.rev}),{n:0,rev:0});
+  table("segTbl",["กลุ่ม","ลูกค้า (ราย)","% ลูกค้า","% รายได้","R เฉลี่ย (วัน)","F เฉลี่ย","M เฉลี่ย (£)"],
+    R.segs.map(s=>[segChip(s.k),fmt0(s.n),fmt1(s.pc),fmt1(s.pr),fmt1(s.aR),fmt1(s.aF),fmt0(s.aM)]),[1,2,3,4,5,6],
+    `<tr class="total"><td>รวม</td><td class="n">${fmt0(tot.n)}</td><td class="n">100.0</td><td class="n">100.0</td><td></td><td></td><td class="n">${fmt0(tot.rev/tot.n)}</td></tr>`);
+  const sf=$("segFilter");sf.innerHTML=`<option value="">ทุกกลุ่ม</option>`+R.segs.map(s=>`<option>${esc(s.k)}</option>`).join("");
+  renderCust();
+  // findings
+  const topSeg=R.segs.slice().sort((a,b)=>b.pr-a.pr)[0];
+  const champ=R.segs.find(s=>s.k==="Champions"),risk=R.segs.find(s=>s.k==="At Risk");
+  const uk=R.countries[0];
+  const f=[
+    `ยอดขายรวม ${gbp(R.total)} จาก ${fmt0(R.orders)} ใบสั่งซื้อ เดือนที่ยอดขายสูงสุดคือ ${best.k} (${gbp(best.s)})`,
+    `ขายดีที่สุดในวัน${DAYS_TH[R.weekday.indexOf(Math.max(...R.weekday))]} และช่วง ${R.hours.reduce((a,b)=>b.s>a.s?b:a).h}:00 น.${R.weekday[5]===0?" ไม่มีรายการในวันเสาร์":""}`,
+    `สินค้าที่ยอดขายสูงสุดคือ ${esc(R.topProd[0].desc)} (${gbp(R.topProd[0].s)})`,
+    `${esc(uk.k)} มีสัดส่วนยอดขาย ${fmt1(uk.share)}% ตลาดต่างประเทศที่ใหญ่ที่สุดรองลงมาคือ ${esc((R.countries[1]||{}).k||"-")}`,
+    `ลูกค้า ${fmt0(R.cust.length)} ราย ซื้อซ้ำ ${fmt1(R.repeat)}%`,
+    `กลุ่ม ${topSeg.k} สร้างรายได้มากที่สุด ${fmt1(topSeg.pr)}% ของรายได้ ทั้งที่มีลูกค้าเพียง ${fmt1(topSeg.pc)}%`,
+    risk?`กลุ่ม At Risk มี ${fmt0(risk.n)} ราย คิดเป็นรายได้ ${fmt1(risk.pr)}% ควรทำแคมเปญดึงกลับก่อนหายไป`:null
+  ].filter(Boolean);
+  $("findings").innerHTML=f.map(x=>`<li>${x}</li>`).join("");
+  table("recTbl",["กลุ่ม","ลูกค้า","แนวทางการตลาด","แนวทางด้านสินค้า"],R.segs.map(s=>[segChip(s.k),`<span class="num">${fmt0(s.n)}</span>`,s.mkt,s.prod]));
+  drawCharts(R);
+  if(meta.real)setStatus(`ใช้ข้อมูลจริงจาก ${meta.name}: ${fmt0(R.inspect.rows)} ระเบียน ลูกค้า ${fmt0(R.cust.length)} ราย`,"real");
+  else setStatus(`กำลังแสดงข้อมูลจำลอง ${fmt0(R.inspect.rows)} แถว เพื่อสาธิตขั้นตอนเท่านั้น ตัวเลขไม่ใช่ผลจริง อัปโหลดไฟล์ Online Retail.xlsx เพื่อดูผลจริง`,"sample");
+}
+function renderCust(){
+  if(!CUR)return;
+  const q=$("custSearch").value.trim(),sg=$("segFilter").value;
+  let l=CUR.cust.filter(c=>(!sg||c.seg===sg)&&(!q||String(c.id).includes(q))).sort((a,b)=>b.M-a.M);
+  const shown=l.slice(0,25);
+  table("custTbl",["รหัสลูกค้า","ประเทศ","R (วัน)","F","M (£)","คะแนน R-F-M","กลุ่ม"],shown.map(c=>[c.id,esc(c.country),c.R,c.F,fmt2(c.M),`${c.Rs}-${c.Fs}-${c.Ms}`,segChip(c.seg)]),[2,3,4,5]);
+  $("custNote").textContent=`แสดง ${fmt0(shown.length)} จาก ${fmt0(l.length)} ราย เรียงตามมูลค่าซื้อรวมจากมากไปน้อย`;
+}
+function run(rows,meta){
+  if(!rows.length){setStatus("ไฟล์ไม่มีข้อมูล","sample");return}
+  const R=analyze(rows);render(R,meta);
+}
+
+/* ---------- events ---------- */
+$("file").addEventListener("change",e=>{const f=e.target.files[0];if(f)readFile(f)});
+const drop=$("drop");
+["dragenter","dragover"].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add("over")}));
+["dragleave","drop"].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove("over")}));
+drop.addEventListener("drop",e=>{const f=e.dataTransfer.files[0];if(f)readFile(f)});
+$("sampleBtn").addEventListener("click",()=>run(makeSample(),{real:false}));
+$("custSearch").addEventListener("input",renderCust);
+$("segFilter").addEventListener("change",renderCust);
+document.querySelectorAll("[data-copy]").forEach(b=>b.addEventListener("click",()=>{
+  const t=$(b.dataset.copy);const txt=[...t.rows].map(r=>[...r.cells].map(c=>c.innerText.trim()).join("\t")).join("\n");
+  const done=()=>{const o=b.textContent;b.textContent="คัดลอกแล้ว";setTimeout(()=>b.textContent=o,1400)};
+  navigator.clipboard.writeText(txt).then(done).catch(()=>{const r=document.createRange();r.selectNodeContents(t);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="กด Ctrl+C เพื่อคัดลอก"});
+}));
+const redraw=()=>{if(CUR)drawCharts(CUR)};
+let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(redraw,150)});
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",redraw)}catch(e){}
+new MutationObserver(redraw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+function boot(){
+  run(makeSample(),{real:false});
+}
+boot();
+})();
+</script>
+
+</body>
+</html>
